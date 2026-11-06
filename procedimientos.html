@@ -179,7 +179,8 @@ function canonCar(v){const c=canonCar1(v);if(c)return c;const t=String(v||'').tr
   const first=t.split(/\s+[-–]\s+|,|\s+y\s+|\s*\(/)[0];if(first&&first!==t){const c2=canonCar1(first);if(c2)return c2}
   const m=t.match(/^(robo|hurto|lesiones|amenazas|abuso sexual|estafa|homicidio|da[nñ]o)\b/i);return m?canonCar1(m[1]):null}
 function canonEsp(v){const k=norm(v);return ESPS.find(e=>norm(e)===k)||(k.startsWith('narco')?NARCO:k.startsWith('investig')?'Investigaciones':k.startsWith('compleja')?'Complejas':null)}
-function limpiarTexto(s){return String(s||'').replace(/[\r\n\t]+/g,' ').replace(/\s{2,}/g,' ').trim()}
+function limpiarTexto(s){return String(s||'').replace(/[\r\n\t]+/g,' ').replace(/([.;,])\s*[-•▪●◦‣⁃�]+\s*/g,'$1 ').replace(/:\s*[-•▪●◦‣⁃�]+\s*/g,': ').replace(/^\s*[-•▪●◦‣⁃�]+\s*/,'').replace(/\s*[-•▪●◦‣⁃�]+\s*/g,'; ').replace(/\s{2,}/g,' ').trim()}
+const VINETA_RE=/[-•▪●◦‣⁃�]/;
 const NARCO_RE=/estupefacient|23\.?737|marihuana|cocaina|paco\b|narcomenudeo|bunker|cannabis|psicotropic/;
 
 /* ---------- controles ---------- */
@@ -353,7 +354,8 @@ $('ESPECIALIDAD').addEventListener('change',()=>{onEsp();revisar()});
 $('CARATULA').addEventListener('change',revisar);
 for(const c of ['FECHA','LOCALIDAD','PU','COORDENADAS'])$(c).addEventListener('input',revisar);
 $('EXTRACTO').addEventListener('input',()=>{contar();clearTimeout(revisar.t);revisar.t=setTimeout(revisar,250)});
-$('EXTRACTO').addEventListener('blur',()=>{const v=limpiarTexto($('EXTRACTO').value);if(v!==$('EXTRACTO').value){$('EXTRACTO').value=v;contar();revisar();toast('Se unificaron saltos de línea y espacios del extracto.')}});
+$('EXTRACTO').addEventListener('blur',()=>{const _antes=$('EXTRACTO').value,v=limpiarTexto(_antes);if(v!==$('EXTRACTO').value){$('EXTRACTO').value=v;contar();revisar();toast(VINETA_RE.test(_antes)?'Se quitaron las viñetas de Word (el «reloj») y se unificaron saltos de línea y espacios.':'Se unificaron saltos de línea y espacios del extracto.')}});
+$('EXTRACTO').addEventListener('paste',()=>setTimeout(()=>{const a=$('EXTRACTO').value;if(VINETA_RE.test(a)){$('EXTRACTO').value=limpiarTexto(a);contar();revisar();toast('Se quitaron las viñetas de Word (el «reloj») del texto pegado.')}},0));
 $('btnGuardar').onclick=guardar;$('btnLimpiar').onclick=()=>limpiar();
 $('cancelEdit').onclick=e=>{e.preventDefault();limpiar()};
 $('btnFin').onclick=finalizar;
